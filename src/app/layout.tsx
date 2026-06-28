@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Playfair_Display } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import Navbar from '@/components/Navbar'; // <-- We import the Navbar here
 
 // Configure Playfair Display
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <main>
           {children}
         </main>
+        <Analytics />
       </body>
     </html>
   );
