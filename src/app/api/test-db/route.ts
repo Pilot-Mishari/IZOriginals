@@ -32,7 +32,7 @@ export async function GET() {
       baseProduct: testProduct._id,
       title: 'Blue Ocean Keychain Request',
       description: 'I would like a blue ocean style keychain with gold flakes.',
-      status: 'PENDING_REVIEW',
+      status: 'DESIGN_PHASE',
       messages: [
         {
           sender: 'CUSTOMER',
