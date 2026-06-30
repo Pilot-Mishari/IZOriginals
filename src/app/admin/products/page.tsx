@@ -55,74 +55,89 @@ export default function AdminProductsPage() {
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '40px auto', padding: '20px' }}>
+    <div className="max-w-3xl mx-auto py-16 px-6 min-h-screen">
       
-      <div style={{ marginBottom: '30px', borderBottom: '1px solid #eaeaea', paddingBottom: '15px' }}>
-        <h1 style={{ fontSize: '2rem', margin: '0 0 10px 0' }}>Catalog Builder</h1>
-        <p style={{ color: '#666', margin: 0 }}>Add a new bespoke item to your live store.</p>
+      <div className="border-b border-neutral-200 pb-8 mb-10">
+        <h1 className="text-4xl font-bold tracking-tight mb-2">Catalog Builder</h1>
+        <p className="text-lg text-neutral-600">Add a new bespoke item to your live storefront.</p>
       </div>
 
       {message && (
-        <div style={{ padding: '15px', marginBottom: '20px', borderRadius: '4px', backgroundColor: message.includes('Success') ? '#e6ffe6' : '#ffe6e6', color: message.includes('Success') ? '#006600' : '#cc0000' }}>
+        <div className={`p-4 mb-8 rounded-lg font-medium ${message.includes('Success') ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
           {message}
         </div>
       )}
       
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <form onSubmit={handleSubmit} className="bg-white border border-neutral-200 rounded-xl p-8 shadow-sm flex flex-col gap-6">
         
-        {/* Title, Category, Price, and Description inputs remain exactly the same as before */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label style={{ fontWeight: 'bold' }}>Product Title</label>
-          <input name="title" required value={formData.title} onChange={handleChange} style={{ padding: '10px', fontSize: '16px', borderRadius: '4px', border: '1px solid #ccc' }} />
+        <div className="flex flex-col gap-2">
+          <label className="font-bold text-neutral-900">Product Title</label>
+          <input 
+            name="title" required value={formData.title} onChange={handleChange} 
+            placeholder="e.g., Custom Acrylic Display Board"
+            className="w-full px-4 py-3 rounded-md border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all" 
+          />
         </div>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label style={{ fontWeight: 'bold' }}>Category</label>
-          <select name="category" value={formData.category} onChange={handleChange} style={{ padding: '10px', fontSize: '16px', borderRadius: '4px', border: '1px solid #ccc' }}>
-            <option value="STATIONERY">Stationery</option>
-            <option value="GIFTS">Gifts</option>
-            <option value="APPAREL">Apparel</option>
-            <option value="OTHER">Other</option>
-          </select>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col gap-2">
+            <label className="font-bold text-neutral-900">Category</label>
+            <select 
+              name="category" value={formData.category} onChange={handleChange} 
+              className="w-full px-4 py-3 rounded-md border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent bg-white transition-all"
+            >
+              <option value="STATIONERY">Stationery</option>
+              <option value="GIFTS">Gifts</option>
+              <option value="APPAREL">Apparel</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="font-bold text-neutral-900">Base Price (SAR)</label>
+            <input 
+              name="basePrice" type="number" step="0.01" required value={formData.basePrice} onChange={handleChange} 
+              placeholder="150.00"
+              className="w-full px-4 py-3 rounded-md border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all" 
+            />
+          </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label style={{ fontWeight: 'bold' }}>Base Price (SAR)</label>
-          <input name="basePrice" type="number" step="0.01" required value={formData.basePrice} onChange={handleChange} style={{ padding: '10px', fontSize: '16px', borderRadius: '4px', border: '1px solid #ccc' }} />
+        <div className="flex flex-col gap-2">
+          <label className="font-bold text-neutral-900">Description & Options</label>
+          <textarea 
+            name="description" required rows={5} value={formData.description} onChange={handleChange} 
+            placeholder="Describe the item and what the customer can customize..."
+            className="w-full px-4 py-3 rounded-md border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all resize-none" 
+          />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label style={{ fontWeight: 'bold' }}>Description</label>
-          <textarea name="description" required rows={4} value={formData.description} onChange={handleChange} style={{ padding: '10px', fontSize: '16px', borderRadius: '4px', border: '1px solid #ccc', fontFamily: 'inherit' }} />
-        </div>
-
-        {/* NEW: Cloudinary Image Upload Widget */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '15px', border: '1px dashed #ccc', borderRadius: '4px', backgroundColor: '#fafafa' }}>
-          <label style={{ fontWeight: 'bold' }}>Product Images</label>
+        <div className="flex flex-col gap-4 p-6 border-2 border-dashed border-neutral-200 rounded-lg bg-neutral-50 mt-2">
+          <label className="font-bold text-neutral-900">Product Images</label>
           
-          <CldUploadWidget uploadPreset="izoriginals-preset" onSuccess={handleImageUpload}>
-            {({ open }) => {
-              return (
-                <button type="button" onClick={() => open()} style={{ padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', alignSelf: 'flex-start' }}>
-                  + Upload Image
-                </button>
-              );
-            }}
+          <CldUploadWidget uploadPreset="izoriginals_preset" onSuccess={handleImageUpload}>
+            {({ open }) => (
+              <button type="button" onClick={() => open()} className="self-start px-6 py-2 bg-white border border-neutral-300 text-neutral-700 font-bold rounded-md hover:bg-neutral-100 transition-colors shadow-sm">
+                + Upload Image
+              </button>
+            )}
           </CldUploadWidget>
 
-          {/* Image Previews */}
           {formData.images.length > 0 && (
-            <div style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
+            <div className="flex gap-4 mt-4 flex-wrap">
               {formData.images.map((url, index) => (
-                <div key={index} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '4px', overflow: 'hidden' }}>
-                  <Image src={url} alt={`Preview ${index}`} fill style={{ objectFit: 'cover' }} />
+                <div key={index} className="relative w-24 h-24 rounded-lg overflow-hidden border border-neutral-200 shadow-sm">
+                  <Image src={url} alt={`Preview ${index}`} fill className="object-cover" />
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <button type="submit" disabled={loading} style={{ padding: '12px', backgroundColor: '#000', color: '#fff', cursor: 'pointer', border: 'none', borderRadius: '4px', fontSize: '16px', marginTop: '10px' }}>
+        <button 
+          type="submit" disabled={loading} 
+          className="w-full py-4 bg-black text-white font-bold rounded-md hover:bg-neutral-800 transition-colors mt-4 disabled:bg-neutral-400"
+        >
           {loading ? 'Publishing...' : 'Publish to Catalog'}
         </button>
       </form>

@@ -3,78 +3,93 @@
 import React, { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
     setError('');
-    setLoading(false);
+    
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email');
+    const password = formData.get('password');
 
-    // Call NextAuth to authenticate credentials securely
-    const result = await signIn('credentials', {
+    const res = await signIn('credentials', {
       redirect: false,
-      email: formData.email,
-      password: formData.password,
+      email,
+      password,
     });
 
-    if (result?.error) {
+    if (res?.error) {
       setError('Invalid email or password');
+      setLoading(false);
     } else {
-      // Login successful! Send them to the main catalog/dashboard
-      router.push('/');
+      router.push('/dashboard');
       router.refresh();
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '40px auto', padding: '20px' }}>
-      <h2>Sign In</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label htmlFor="email">Email Address</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            value={formData.email}
-            onChange={handleChange}
-            style={{ padding: '8px', fontSize: '16px' }}
-          />
+    <div className="min-h-[80vh] flex items-center justify-center bg-neutral-50 px-6">
+      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-sm border border-neutral-200">
+        
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-neutral-900 mb-2">Welcome Back</h1>
+          <p className="text-neutral-500">Log in to manage your custom orders.</p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            value={formData.password}
-            onChange={handleChange}
-            style={{ padding: '8px', fontSize: '16px' }}
-          />
-        </div>
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 text-red-700 border border-red-200 rounded-md text-sm font-medium text-center">
+            {error}
+          </div>
+        )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ padding: '10px', fontSize: '16px', cursor: 'pointer', marginTop: '10px' }}
-        >
-          {loading ? 'Signing In...' : 'Log In'}
-        </button>
-      </form>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <div>
+            <label className="block text-sm font-bold text-neutral-900 mb-2">Email Address</label>
+            <input 
+              type="email" 
+              name="email" 
+              required 
+              autoComplete="off"
+              className="w-full px-4 py-3 rounded-md border border-neutral-300 text-neutral-900 bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+              placeholder="you@example.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-neutral-900 mb-2">Password</label>
+            <input 
+              type="password" 
+              name="password" 
+              required 
+              autoComplete="new-password"
+              className="w-full px-4 py-3 rounded-md border border-neutral-300 text-neutral-900 bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full py-4 mt-2 bg-black text-white font-bold rounded-md hover:bg-neutral-800 transition-colors disabled:bg-neutral-400"
+          >
+            {loading ? 'Authenticating...' : 'Log In'}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-neutral-600">
+          Don't have an account?{' '}
+          <Link href="/register" className="font-bold text-black hover:underline">
+            Sign up here
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

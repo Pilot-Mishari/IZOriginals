@@ -1,26 +1,18 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  /* This instantly styles every input, select, and textarea globally */
+  input, select, textarea {
+    @apply bg-white border border-neutral-300 text-neutral-900 rounded-md px-4 py-2 transition-all;
   }
-}
+  
+  /* Adds the premium black highlight when you click into a box */
+  input:focus, select:focus, textarea:focus {
+    @apply outline-none ring-2 ring-black border-transparent;
+  }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Just in case any options in your select boxes try to hide */
+  option {
+    @apply text-neutral-900 bg-white;
+  }
 }

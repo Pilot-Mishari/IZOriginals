@@ -3,109 +3,121 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { connectToDatabase } from '@/lib/db';
 import Project from '@/models/Project';
+import User from '@/models/User';
 import Image from 'next/image';
+import Link from 'next/link';
 import ProofReviewer from './ProofReviewer';
+import ProjectProgress from './ProjectProgress';
 
 export default async function DashboardPage() {
   const session = await auth();
 
-  if (!session || !session.user) {
-    redirect('/login');
-  }
-
+  // Ensure the user is logged in and has an email attached to their session
+  if (!session || !session.user || !session.user.email) redirect('/login');
+  
   await connectToDatabase();
   
-  const userProjects = await Project.find({ customer: session.user.id })
+  // 1. Reliably find the user in the database using their secure session email
+  const dbUser = await User.findOne({ email: session.user.email });
+
+  if (!dbUser) {
+    return (
+      <div className="max-w-5xl mx-auto py-12 px-6 min-h-screen text-center">
+        <p className="text-xl text-neutral-600">Locating your account...</p>
+      </div>
+    );
+  }
+
+  // 2. Fetch projects using their guaranteed database _id
+  const userProjects = await Project.find({ customer: dbUser._id })
     .sort({ createdAt: -1 })
     .lean(); 
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '40px auto', padding: '20px' }}>
+    <div className="max-w-5xl mx-auto py-12 px-6 min-h-screen">
       
-      <div style={{ marginBottom: '40px', borderBottom: '1px solid #eaeaea', paddingBottom: '20px' }}>
-        <h1 style={{ fontSize: '2.5rem', margin: '0 0 10px 0' }}>My Dashboard</h1>
-        <p style={{ fontSize: '1.1rem', color: '#666', margin: 0 }}>
-          Welcome back, {session.user.name}. Manage your custom design projects here.
+      <div className="border-b border-neutral-200 pb-8 mb-10">
+        <h1 className="text-4xl font-bold mb-2 tracking-tight">Client Portal</h1>
+        <p className="text-lg text-neutral-600">
+          Welcome back, <span className="font-semibold text-black">{session.user.name}</span>. Track your active design briefs and approve mockups below.
         </p>
       </div>
 
       {userProjects.length === 0 ? (
-        <div style={{ padding: '50px', textAlign: 'center', backgroundColor: '#fafafa', borderRadius: '8px', border: '1px dashed #ccc' }}>
-          <h3 style={{ margin: '0 0 10px 0' }}>No active projects</h3>
-          <p style={{ color: '#666', margin: 0 }}>
-            You haven't started any custom stationery or gift projects yet.
-          </p>
+        <div className="bg-neutral-50 border border-dashed border-neutral-300 rounded-lg p-16 text-center">
+          <h3 className="text-2xl font-bold mb-2">No active projects</h3>
+          <p className="text-neutral-500">You haven't submitted any custom design briefs yet.</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+        <div className="flex flex-col gap-8">
           {userProjects.map((project: any) => (
-            <div key={project._id.toString()} style={{ border: '1px solid #eaeaea', padding: '25px', borderRadius: '8px', backgroundColor: '#fff', display: 'flex', gap: '30px', flexDirection: 'row', flexWrap: 'wrap' }}>
+            <div key={project._id.toString()} className="bg-white border border-neutral-200 rounded-xl p-8 shadow-sm flex flex-col md:flex-row gap-8">
               
-              {/* Order Info */}
-              <div style={{ flex: '1', minWidth: '300px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
-                  <h2 style={{ margin: 0, fontSize: '1.5rem' }}>{project.title}</h2>
-                  <span style={{
-                    padding: '6px 12px',
-                    backgroundColor: project.status === 'COMPLETED' ? '#e6ffe6' : '#f0f0f0',
-                    color: project.status === 'COMPLETED' ? '#006600' : '#333',
-                    borderRadius: '20px',
-                    fontSize: '0.85rem',
-                    fontWeight: 'bold'
-                  }}>
+              {/* Left Side: Order Info & Progress */}
+              <div className="flex-1">
+                <div className="flex justify-between items-start mb-4">
+                  <h2 className="text-2xl font-bold">{project.title}</h2>
+                  <span className={`px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase ${
+                    project.status === 'COMPLETED' ? 'bg-green-100 text-green-800' : 'bg-black text-white'
+                  }`}>
                     {project.status.replace('_', ' ')}
                   </span>
                 </div>
                 
-                <p style={{ color: '#555', marginBottom: '20px', lineHeight: '1.5' }}>
-                  {project.description}
-                </p>
+                <p className="text-neutral-600 leading-relaxed mb-8">{project.description}</p>
                 
-                <div style={{ display: 'flex', gap: '30px', fontSize: '0.9rem', color: '#777' }}>
-                  <span><strong>Created:</strong> {new Date(project.createdAt).toLocaleDateString()}</span>
-                  <span><strong>Price:</strong> SAR {project.quotedPrice.toFixed(2)}</span>
+                {/* Visual Stepper Component */}
+                <div className="mb-8 pr-12">
+                  <ProjectProgress status={project.status} proofStatus={project.proofStatus} />
+                </div>
+                
+                <div className="flex gap-8 text-sm text-neutral-500 font-medium border-t border-neutral-100 pt-6">
+                  <p>Created: <span className="text-neutral-900">{new Date(project.createdAt).toLocaleDateString()}</span></p>
+                  <p>Quote: <span className="text-neutral-900">SAR {project.quotedPrice?.toFixed(2) || '0.00'}</span></p>
+                </div>
+
+                {/* Navigation to Full Details Page */}
+                <div className="mt-6">
+                  <Link href={`/dashboard/projects/${project._id.toString()}`} className="inline-block px-6 py-3 bg-black text-white text-sm font-bold rounded-md hover:bg-neutral-800 transition-colors">
+                    View Full Details ➔
+                  </Link>
                 </div>
               </div>
 
-              {/* Design Proof Section */}
+              {/* Right Side: Design Proof Section */}
               {project.designProofUrl && (
-                <div style={{ width: '350px', borderLeft: '1px solid #eaeaea', paddingLeft: '25px' }}>
-                  <h3 style={{ margin: '0 0 10px 0', fontSize: '1.1rem' }}>Design Proof</h3>
+                <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-neutral-200 pt-6 md:pt-0 md:pl-8 flex flex-col">
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400 mb-4">Design Proof</h3>
                   
-                  <div style={{ width: '100%', height: '200px', position: 'relative', borderRadius: '6px', overflow: 'hidden', border: '1px solid #ccc' }}>
-                    <Image src={project.designProofUrl} alt="Design Proof" fill style={{ objectFit: 'cover' }} />
+                  <div className="w-full h-48 relative rounded-lg overflow-hidden border border-neutral-200 mb-4">
+                    <Image src={project.designProofUrl} alt="Design Proof" fill className="object-cover" />
                   </div>
                   
                   {project.designNotes && (
-                    <p style={{ fontSize: '0.9rem', color: '#555', marginTop: '10px', fontStyle: 'italic' }}>
-                      " {project.designNotes} "
+                    <p className="text-sm text-neutral-600 italic bg-neutral-50 p-4 rounded-md mb-4 border border-neutral-100">
+                      "{project.designNotes}"
                     </p>
                   )}
 
-                  {/* Show actions only if it's pending approval */}
-                  {project.proofStatus === 'PENDING_APPROVAL' && (
-                    <ProofReviewer projectId={project._id.toString()} />
-                  )}
-
-                  {/* Show status if already acted upon */}
-                  {project.proofStatus === 'APPROVED' && (
-                    <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#e6ffe6', color: '#006600', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }}>
-                      ✓ Proof Approved
-                    </div>
-                  )}
-                  {project.proofStatus === 'REVISION_REQUESTED' && (
-                    <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#fff0f0', color: '#cc0000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }}>
-                      Revision Requested
-                    </div>
-                  )}
+                  <div className="mt-auto">
+                    {project.proofStatus === 'PENDING_APPROVAL' && <ProofReviewer projectId={project._id.toString()} />}
+                    {project.proofStatus === 'APPROVED' && (
+                      <div className="w-full py-3 bg-green-50 text-green-700 border border-green-200 rounded-md text-center font-bold text-sm">
+                        ✓ Approved for Production
+                      </div>
+                    )}
+                    {project.proofStatus === 'REVISION_REQUESTED' && (
+                      <div className="w-full py-3 bg-amber-50 text-amber-700 border border-amber-200 rounded-md text-center font-bold text-sm">
+                        Revision Requested
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-              
             </div>
           ))}
         </div>
       )}
-      
     </div>
   );
 }

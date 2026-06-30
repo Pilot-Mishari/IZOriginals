@@ -1,55 +1,63 @@
-import React from 'react';
 import Link from 'next/link';
-import { auth } from '@/auth'; // Pulls in your secure NextAuth session
 
-export default async function HomePage() {
-  // Check if the user is currently logged in
-  const session = await auth();
-
+export default function HomePage() {
   return (
-    <div style={{ maxWidth: '800px', margin: '60px auto', padding: '20px', textAlign: 'center' }}>
+    <main className="min-h-screen bg-neutral-50 text-neutral-900">
       
-      {/* Brand Header */}
-      <h1 style={{ fontSize: '3rem', marginBottom: '10px' }}>iZoriginals</h1>
-      <p style={{ fontSize: '1.2rem', color: '#555', marginBottom: '40px' }}>
-        Bespoke customized gifts, premium stationery, and handcrafted designs.
-      </p>
-
-      {/* Conditional Rendering: What to show based on login status */}
-      {session ? (
-        <div style={{ padding: '30px', border: '1px solid #eaeaea', borderRadius: '8px', backgroundColor: '#fafafa' }}>
-          <h2>Welcome back, {session.user?.name}!</h2>
-          <p style={{ marginTop: '10px', color: '#666' }}>
-            Ready to start a new custom project or check your recent orders?
+      {/* Hero Section */}
+      <section className="bg-black text-white py-24 px-6 text-center">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
+            Bespoke Craftsmanship.<br />Uniquely Yours.
+          </h1>
+          <p className="text-lg md:text-xl text-gray-400 mb-10">
+            From precision-cut layered paper engineering to handcrafted lifestyle gifts, we bring your exact vision to life.
           </p>
-          
-          <div style={{ marginTop: '30px', display: 'flex', gap: '15px', justifyContent: 'center' }}>
-            <Link href="/catalog" style={{ padding: '10px 20px', backgroundColor: '#000', color: '#fff', textDecoration: 'none', borderRadius: '5px' }}>
-              Browse Catalog
+          <div className="flex justify-center gap-4">
+            <Link href="/catalog" className="px-8 py-3 bg-white text-black font-semibold rounded hover:bg-gray-200 transition-colors">
+              Explore the Collection
             </Link>
-            <Link href="/dashboard" style={{ padding: '10px 20px', border: '1px solid #000', color: '#000', textDecoration: 'none', borderRadius: '5px' }}>
-              My Dashboard
+            <Link href="/dashboard" className="px-8 py-3 bg-transparent border border-gray-600 text-white font-semibold rounded hover:border-white transition-colors">
+              Track Your Order
             </Link>
           </div>
         </div>
-      ) : (
-        <div style={{ padding: '30px', border: '1px solid #eaeaea', borderRadius: '8px' }}>
-          <h2>Bring your ideas to life.</h2>
-          <p style={{ marginTop: '10px', color: '#666' }}>
-            Create an account to track your custom orders, approve design proofs, and manage your collection.
-          </p>
-          
-          <div style={{ marginTop: '30px', display: 'flex', gap: '15px', justifyContent: 'center' }}>
-            <Link href="/register" style={{ padding: '10px 20px', backgroundColor: '#000', color: '#fff', textDecoration: 'none', borderRadius: '5px' }}>
-              Create Account
-            </Link>
-            <Link href="/login" style={{ padding: '10px 20px', border: '1px solid #000', color: '#000', textDecoration: 'none', borderRadius: '5px' }}>
-              Log In
-            </Link>
+      </section>
+
+      {/* Featured Categories Grid */}
+      <section className="max-w-6xl mx-auto py-24 px-6">
+        <h2 className="text-3xl font-bold text-center mb-16 uppercase tracking-widest">Our Specialties</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Category 1 */}
+          <div className="bg-white p-8 border border-neutral-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div className="h-12 w-12 bg-black text-white flex items-center justify-center rounded-full mb-6 font-bold text-xl">1</div>
+            <h3 className="text-xl font-bold mb-3">Layered Paper Art</h3>
+            <p className="text-neutral-600 leading-relaxed">
+              Intricate 3D paper models, custom cardstock branding, and precision-cut stationary designed specifically for your event.
+            </p>
+          </div>
+
+          {/* Category 2 */}
+          <div className="bg-white p-8 border border-neutral-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div className="h-12 w-12 bg-black text-white flex items-center justify-center rounded-full mb-6 font-bold text-xl">2</div>
+            <h3 className="text-xl font-bold mb-3">Bespoke Gifting</h3>
+            <p className="text-neutral-600 leading-relaxed">
+              Personalized lifestyle products and curated gift packaging engineered to leave a lasting impression.
+            </p>
+          </div>
+
+          {/* Category 3 */}
+          <div className="bg-white p-8 border border-neutral-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div className="h-12 w-12 bg-black text-white flex items-center justify-center rounded-full mb-6 font-bold text-xl">3</div>
+            <h3 className="text-xl font-bold mb-3">Acrylic & Engraving</h3>
+            <p className="text-neutral-600 leading-relaxed">
+              Industrial-grade laser cutting for permanent, high-contrast designs on premium materials.
+            </p>
           </div>
         </div>
-      )}
+      </section>
 
-    </div>
+    </main>
   );
 }

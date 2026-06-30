@@ -2,111 +2,111 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function RegisterPage() {
   const router = useRouter();
-  // Added mobileNumber and address to our starting state
-  const [formData, setFormData] = useState({ 
-    name: '', 
-    email: '', 
-    password: '', 
-    mobileNumber: '', 
-    address: '' 
-  });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
+    setError('');
+
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('name');
+    const email = formData.get('email');
+    const password = formData.get('password');
 
     try {
       const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ name, email, password }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Something went wrong');
+      if (res.ok) {
+        router.push('/login');
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Registration failed');
       }
-
-      router.push('/login');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError('Something went wrong');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '40px auto', padding: '20px' }}>
-      <h2>Create an Account</h2>
-      {error && <p style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
-      
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+    <div className="min-h-[80vh] flex items-center justify-center bg-neutral-50 px-6 py-12">
+      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-sm border border-neutral-200">
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label htmlFor="name">Full Name</label>
-          <input
-            id="name" name="name" type="text" required
-            value={formData.name} onChange={handleChange}
-            style={{ padding: '8px', fontSize: '16px' }}
-          />
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-neutral-900 mb-2">Create an Account</h1>
+          <p className="text-neutral-500">Join to start your bespoke design project.</p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label htmlFor="email">Email Address</label>
-          <input
-            id="email" name="email" type="email" required
-            value={formData.email} onChange={handleChange}
-            style={{ padding: '8px', fontSize: '16px' }}
-          />
-        </div>
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 text-red-700 border border-red-200 rounded-md text-sm font-medium text-center">
+            {error}
+          </div>
+        )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label htmlFor="mobileNumber">Mobile Number</label>
-          <input
-            id="mobileNumber" name="mobileNumber" type="tel" required
-            value={formData.mobileNumber} onChange={handleChange}
-            style={{ padding: '8px', fontSize: '16px' }}
-            placeholder="+966 5X XXX XXXX"
-          />
-        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <div>
+            <label className="block text-sm font-bold text-neutral-900 mb-2">Full Name</label>
+            <input 
+              type="text" 
+              name="name" 
+              required 
+              autoComplete="off"
+              className="w-full px-4 py-3 rounded-md border border-neutral-300 text-neutral-900 bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+              placeholder="e.g. Jane Doe"
+            />
+          </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label htmlFor="address">Delivery Address</label>
-          <textarea
-            id="address" name="address" required
-            value={formData.address} onChange={handleChange}
-            style={{ padding: '8px', fontSize: '16px', minHeight: '60px', fontFamily: 'inherit' }}
-            placeholder="Street, District, City"
-          />
-        </div>
+          <div>
+            <label className="block text-sm font-bold text-neutral-900 mb-2">Email Address</label>
+            <input 
+              type="email" 
+              name="email" 
+              required 
+              autoComplete="off"
+              className="w-full px-4 py-3 rounded-md border border-neutral-300 text-neutral-900 bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+              placeholder="you@example.com"
+            />
+          </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label htmlFor="password">Password</label>
-          <input
-            id="password" name="password" type="password" required
-            value={formData.password} onChange={handleChange}
-            style={{ padding: '8px', fontSize: '16px' }}
-          />
-        </div>
+          <div>
+            <label className="block text-sm font-bold text-neutral-900 mb-2">Password</label>
+            <input 
+              type="password" 
+              name="password" 
+              required 
+              autoComplete="new-password"
+              className="w-full px-4 py-3 rounded-md border border-neutral-300 text-neutral-900 bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+              placeholder="••••••••"
+            />
+          </div>
 
-        <button 
-          type="submit" disabled={loading}
-          style={{ padding: '10px', fontSize: '16px', cursor: 'pointer', marginTop: '10px' }}
-        >
-          {loading ? 'Creating Account...' : 'Register'}
-        </button>
-      </form>
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full py-4 mt-2 bg-black text-white font-bold rounded-md hover:bg-neutral-800 transition-colors disabled:bg-neutral-400"
+          >
+            {loading ? 'Creating Account...' : 'Create Account'}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-neutral-600">
+          Already have an account?{' '}
+          <Link href="/login" className="font-bold text-black hover:underline">
+            Log in here
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

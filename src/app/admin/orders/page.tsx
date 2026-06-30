@@ -4,17 +4,14 @@ import { auth } from '@/auth';
 import { connectToDatabase } from '@/lib/db';
 import Project from '@/models/Project';
 import User from '@/models/User';
-import StatusSelector from './StatusSelector';
-import AdminProofUploader from './AdminProofUploader'; // We will create this client component right next to it
+import AdminActionPanel from './AdminActionPanel';
+import AdminProofUploader from './AdminProofUploader';
 import Image from 'next/image';
 
 export default async function AdminOrdersPage() {
   const session = await auth();
 
-  if (!session || (session.user as any).role !== 'ADMIN') {
-    redirect('/'); 
-  }
-
+  if (!session || (session.user as any).role !== 'ADMIN') redirect('/'); 
   await connectToDatabase();
 
   const allOrders = await Project.find({})
@@ -23,61 +20,69 @@ export default async function AdminOrdersPage() {
     .lean();
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '40px auto', padding: '20px' }}>
+    <div className="max-w-7xl mx-auto py-12 px-6 min-h-screen">
       
-      <div style={{ marginBottom: '40px', borderBottom: '1px solid #eaeaea', paddingBottom: '20px' }}>
-        <h1 style={{ fontSize: '2.5rem', margin: '0 0 10px 0' }}>Master Order Dashboard</h1>
-        <p style={{ fontSize: '1.1rem', color: '#666', margin: 0 }}>
-          Manage incoming requests and upload bespoke mockups.
+      <div className="border-b border-neutral-200 pb-8 mb-12">
+        <h1 className="text-4xl font-bold tracking-tight mb-2">Command Center</h1>
+        <p className="text-lg text-neutral-600">
+          Manage incoming requests, upload bespoke mockups, and track production.
         </p>
       </div>
 
-      <div style={{ display: 'grid', gap: '30px' }}>
+      <div className="flex flex-col gap-8">
         {allOrders.map((order: any) => (
-          <div key={order._id.toString()} style={{ border: '1px solid #eaeaea', padding: '25px', borderRadius: '8px', backgroundColor: '#fff', display: 'flex', gap: '30px', justifyContent: 'space-between' }}>
+          <div key={order._id.toString()} className="bg-white border border-neutral-200 rounded-xl p-8 shadow-sm flex flex-col lg:flex-row gap-10">
             
             {/* Left: Project Specs & Customer Details */}
-            <div style={{ flex: '1' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '10px' }}>
-                <h2 style={{ margin: 0, fontSize: '1.5rem' }}>{order.title}</h2>
-                <span style={{ fontSize: '0.8rem', padding: '4px 8px', backgroundColor: '#f0f0f0', borderRadius: '4px', fontWeight: 'bold' }}>
-                  Proof: {order.proofStatus}
+            <div className="flex-1">
+              <div className="flex items-center gap-4 mb-4">
+                <h2 className="text-2xl font-bold">{order.title}</h2>
+                <span className="text-xs font-bold px-3 py-1 bg-neutral-100 text-neutral-600 rounded-full uppercase tracking-wider">
+                  Proof: {(order.proofStatus || 'PENDING').replace('_', ' ')}
                 </span>
               </div>
-              <p style={{ color: '#444', marginBottom: '20px' }}>{order.description}</p>
+              <p className="text-neutral-700 leading-relaxed mb-6">{order.description}</p>
               
-              <div style={{ fontSize: '0.9rem', color: '#666', borderTop: '1px solid #f9f9f9', paddingTop: '15px' }}>
-                <p style={{ margin: '0 0 5px 0' }}><strong>Customer:</strong> {order.customer?.name} ({order.customer?.email})</p>
-                <p style={{ margin: 0 }}><strong>Phone:</strong> {order.customer?.mobileNumber}</p>
+              <div className="grid grid-cols-2 gap-4 text-sm bg-neutral-50 p-4 rounded-lg border border-neutral-100">
+                <div>
+                  <p className="text-neutral-500 mb-1">Customer</p>
+                  <p className="font-semibold text-neutral-900">{order.customer?.name}</p>
+                  <p className="text-neutral-600">{order.customer?.email}</p>
+                </div>
+                <div>
+                  <p className="text-neutral-500 mb-1">Contact & Date</p>
+                  <p className="font-semibold text-neutral-900">{order.customer?.mobileNumber || 'N/A'}</p>
+                  <p className="text-neutral-600">{new Date(order.createdAt).toLocaleDateString()}</p>
+                </div>
               </div>
 
-              {/* Show Customer Feedback if they requested a revision */}
               {order.customerFeedback && (
-                <div style={{ marginTop: '15px', padding: '12px', backgroundColor: '#fff0f0', borderLeft: '4px solid #ff4d4d', borderRadius: '4px' }}>
-                  <strong>Customer Revision Notes:</strong> "{order.customerFeedback}"
+                <div className="mt-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg">
+                  <p className="text-sm font-bold text-amber-900 mb-1">Customer Revision Notes:</p>
+                  <p className="text-sm text-amber-800">"{order.customerFeedback}"</p>
                 </div>
               )}
             </div>
 
-            {/* Right: Management & Proof Upload Action Panel */}
-            <div style={{ width: '320px', display: 'flex', flexDirection: 'column', gap: '15px', borderLeft: '1px solid #f0f0f0', paddingLeft: '25px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>SAR {order.quotedPrice.toFixed(2)}</span>
-                <StatusSelector projectId={order._id.toString()} currentStatus={order.status} />
+            {/* Right: Management Action Panel */}
+            <div className="w-full lg:w-96 flex flex-col gap-6 border-t lg:border-t-0 lg:border-l border-neutral-200 pt-8 lg:pt-0 lg:pl-10">
+              <div className="flex justify-between items-center bg-neutral-50 p-4 rounded-lg border border-neutral-100">
+                <span className="text-xl font-bold">SAR {order.quotedPrice.toFixed(2)}</span>
+                {/* Note: Your StatusSelector component might still have inline styles. Feel free to update its <select> tag with Tailwind later! */}
+                <AdminActionPanel projectId={order._id.toString()} currentStatus={order.status} />
               </div>
 
-              {/* If a proof is already loaded, show a micro preview */}
               {order.designProofUrl ? (
-                <div style={{ width: '100%', height: '140px', position: 'relative', borderRadius: '6px', overflow: 'hidden', border: '1px solid #ddd' }}>
-                  <Image src={order.designProofUrl} alt="Active proof" fill style={{ objectFit: 'cover' }} />
+                <div className="w-full h-40 relative rounded-lg overflow-hidden border border-neutral-200">
+                  <Image src={order.designProofUrl} alt="Active proof" fill className="object-cover" />
                 </div>
               ) : (
-                <div style={{ padding: '15px', textAlign: 'center', backgroundColor: '#fafafa', border: '1px dashed #ccc', borderRadius: '6px', fontSize: '0.85rem', color: '#777' }}>
-                  No mockup sent yet
+                <div className="w-full py-8 border-2 border-dashed border-neutral-200 rounded-lg text-center text-sm text-neutral-400 font-medium">
+                  No mockup uploaded
                 </div>
               )}
 
-              {/* Component to send/update the design mockup */}
+              {/* Your AdminProofUploader component */}
               <AdminProofUploader projectId={order._id.toString()} />
             </div>
 

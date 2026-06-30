@@ -1,36 +1,24 @@
 import type { Metadata } from 'next';
-import { Playfair_Display } from 'next/font/google';
-import { Analytics } from '@vercel/analytics/next';
-import Navbar from '@/components/Navbar'; // <-- We import the Navbar here
-
-// Configure Playfair Display
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800', '900'],
-  style: ['normal', 'italic'],
-  variable: '--font-playfair', 
-});
+import './globals.css';
+import Navbar from '@/components/Navbar';
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata: Metadata = {
-  title: 'iZoriginals Platform',
-  description: 'Bespoke custom gifts and stationery',
+  title: 'iZoriginals',
+  description: 'Bespoke Craftsmanship. Uniquely Yours.',
 };
 
-export interface RootLayoutProps {
+export default function RootLayout({
+  children,
+}: {
   children: React.ReactNode;
-}
-
-export default function RootLayout({ children }: RootLayoutProps) {
+}) {
   return (
     <html lang="en">
-      <body className={playfair.className} style={{ margin: 0, padding: 0, backgroundColor: '#fdfdfd' }}>
-        {/* The Navbar will now automatically appear on all pages */}
+      {/* THIS IS THE MAGIC LINE: */}
+      <body className="bg-neutral-50 text-neutral-900 antialiased">
         <Navbar />
-        
-        {/* The current page renders inside 'children' */}
-        <main>
-          {children}
-        </main>
+        {children}
         <Analytics />
       </body>
     </html>
