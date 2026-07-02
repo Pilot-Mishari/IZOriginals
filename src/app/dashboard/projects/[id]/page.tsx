@@ -8,6 +8,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ProjectProgress from '../../ProjectProgress'; 
 import ProofReviewer from '../../ProofReviewer';
+import ClientProofReview from '../../ClientProofReview';
 
 // FIX 1: Next.js 15 requires params to be treated as a Promise
 export default async function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -17,6 +18,8 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
 
   const session = await auth();
 
+  
+
   if (!session || !session.user || !session.user.email) redirect('/login');
   
   await connectToDatabase();
@@ -25,6 +28,9 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
 
   // Fetch the specific project
   const project = await Project.findById(projectId).lean();
+
+  console.log("DATABASE STATUS IS:", project.proofStatus);
+  console.log("MOCKUP URL IS:", project.designProofUrl);
 
   // FIX 2: Stop silently redirecting! Show actual error messages so we can debug.
   if (!project) {
@@ -92,6 +98,7 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
             </div>
           </div>
         </div>
+
 
         {/* Right Col: Proof / Mockup */}
         <div className="bg-white border border-neutral-200 rounded-xl p-8 shadow-sm">

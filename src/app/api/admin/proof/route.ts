@@ -25,6 +25,7 @@ export async function PATCH(req: Request) {
           designProofUrl: designProofUrl,
           designNotes: designNotes, // Saving the notes you typed in!
           status: 'PENDING_APPROVAL', // Automatically advances the timeline for the client
+          proofStatus: 'PENDING_APPROVAL' // Update the proof status to indicate it's waiting for client review
         }
       },
       { new: true } 
