@@ -8,9 +8,9 @@ export default function AdminProductsPage() {
   const [formData, setFormData] = useState({ 
     title: '', 
     description: '', 
-    category: 'STATIONERY', 
-    basePrice: '',
-    images: [] as string[] // Added to hold the uploaded image URLs
+    status: 'ACTIVE', // Changed from category to match database schema
+    price: '',        // Changed from basePrice to match database schema
+    imageUrl: ''      // Changed from images[] array to single string to match schema
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -21,10 +21,14 @@ export default function AdminProductsPage() {
     setMessage('');
 
     try {
-      const res = await fetch('/api/admin/products', {
+      // 1. Pointing to the exact API route we just created
+      const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          price: Number(formData.price) // Ensure it sends as a number
+        }),
       });
 
       const data = await res.json();
@@ -32,7 +36,8 @@ export default function AdminProductsPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to create product');
 
       setMessage('Success! Product added to live catalog.');
-      setFormData({ title: '', description: '', category: 'STATIONERY', basePrice: '', images: [] });
+      // Reset form on success
+      setFormData({ title: '', description: '', status: 'ACTIVE', price: '', imageUrl: '' });
       
     } catch (error: any) {
       setMessage(`Error: ${error.message}`);
@@ -48,9 +53,10 @@ export default function AdminProductsPage() {
   // Cloudinary upload success handler
   const handleImageUpload = (result: any) => {
     const secureUrl = result.info.secure_url;
+    // Store as a single string to match our new database model
     setFormData((prev) => ({
       ...prev,
-      images: [...prev.images, secureUrl]
+      imageUrl: secureUrl
     }));
   };
 
@@ -81,22 +87,21 @@ export default function AdminProductsPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex flex-col gap-2">
-            <label className="font-bold text-neutral-900">Category</label>
+            <label className="font-bold text-neutral-900">Visibility Status</label>
             <select 
-              name="category" value={formData.category} onChange={handleChange} 
-              className="w-full px-4 py-3 rounded-md border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent bg-white transition-all"
+              name="status" value={formData.status} onChange={handleChange} 
+              className="w-full px-4 py-3 rounded-md border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent bg-white transition-all cursor-pointer"
             >
-              <option value="STATIONERY">Stationery</option>
-              <option value="GIFTS">Gifts</option>
-              <option value="APPAREL">Apparel</option>
-              <option value="OTHER">Other</option>
+              <option value="ACTIVE">Active (Live in Catalog)</option>
+              <option value="DRAFT">Draft (Hidden)</option>
+              <option value="ARCHIVED">Archived</option>
             </select>
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="font-bold text-neutral-900">Base Price (SAR)</label>
+            <label className="font-bold text-neutral-900">Price (SAR)</label>
             <input 
-              name="basePrice" type="number" step="0.01" required value={formData.basePrice} onChange={handleChange} 
+              name="price" type="number" step="0.01" required value={formData.price} onChange={handleChange} 
               placeholder="150.00"
               className="w-full px-4 py-3 rounded-md border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all" 
             />
@@ -113,7 +118,7 @@ export default function AdminProductsPage() {
         </div>
 
         <div className="flex flex-col gap-4 p-6 border-2 border-dashed border-neutral-200 rounded-lg bg-neutral-50 mt-2">
-          <label className="font-bold text-neutral-900">Product Images</label>
+          <label className="font-bold text-neutral-900">Product Image</label>
           
           <CldUploadWidget uploadPreset="izoriginals_preset" onSuccess={handleImageUpload}>
             {({ open }) => (
@@ -123,13 +128,11 @@ export default function AdminProductsPage() {
             )}
           </CldUploadWidget>
 
-          {formData.images.length > 0 && (
-            <div className="flex gap-4 mt-4 flex-wrap">
-              {formData.images.map((url, index) => (
-                <div key={index} className="relative w-24 h-24 rounded-lg overflow-hidden border border-neutral-200 shadow-sm">
-                  <Image src={url} alt={`Preview ${index}`} fill className="object-cover" />
-                </div>
-              ))}
+          {formData.imageUrl && (
+            <div className="mt-4">
+              <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-neutral-200 shadow-sm">
+                <Image src={formData.imageUrl} alt="Uploaded product preview" fill className="object-cover" />
+              </div>
             </div>
           )}
         </div>

@@ -14,7 +14,7 @@ export default function AdminProofUploader({ projectId }: { projectId: string })
     setLoading(true);
 
     try {
-      const response = await fetch('/api/admin/proofs', {
+      const response = await fetch('/api/admin/proof', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -24,12 +24,18 @@ export default function AdminProofUploader({ projectId }: { projectId: string })
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to attach proof');
+      // 1. Unmasking the exact error from the server
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Server returned status: ${response.status}`);
+      }
       
       setNotes('');
       router.refresh();
-    } catch (err) {
-      alert('Error updating design proof mapping');
+    } catch (err: any) {
+      // 2. Alerting the REAL error message!
+      alert(`REAL ERROR: ${err.message}`);
+      console.error("Upload failed:", err);
     } finally {
       setLoading(false);
     }

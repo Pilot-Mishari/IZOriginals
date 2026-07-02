@@ -3,48 +3,51 @@ import { connectToDatabase } from '@/lib/db';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { name, email, password, mobileNumber, address } = await request.json();
+    const body = await req.json();
+    const { name, email, password, mobile, district, streetAddress } = body;
 
-    // 1. Updated validation to include the new fields
-    if (!name || !email || !password || !mobileNumber || !address) {
-      return NextResponse.json({ error: 'Please fill in all required fields' }, { status: 400 });
-    }
-
-    if (password.length < 6) {
-      return NextResponse.json({ error: 'Password must be at least 6 characters long' }, { status: 400 });
+    // 1. Strict validation for all required fields
+    if (!name || !email || !password || !mobile || !district || !streetAddress) {
+      return NextResponse.json(
+        { error: 'Please fill out all required fields.' },
+        { status: 400 }
+      );
     }
 
     await connectToDatabase();
 
-    // 2. Check if the user already exists
-    const normalizedEmail = email.toLowerCase().trim();
-    const existingUser = await User.findOne({ email: normalizedEmail });
+    // 2. Check for existing users
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
-      return NextResponse.json({ error: 'Email is already registered' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'An account with this email already exists.' },
+        { status: 400 }
+      );
     }
 
-    // 3. Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 4. Create the new user with the new fields
+    // 3. Create the user with the new location and contact data
     const newUser = await User.create({
-      name: name.trim(),
-      email: normalizedEmail,
-      passwordHash,
-      mobileNumber: mobileNumber.trim(),
-      address: address.trim(),
-      role: 'CUSTOMER',
+      name,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      mobile,
+      district,
+      streetAddress,
+      city: 'Riyadh', // Hardcoded safely on the backend
+      role: 'USER',
     });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Account created successfully!',
-    }, { status: 201 });
+    return NextResponse.json({ success: true, user: { id: newUser._id, email: newUser.email } }, { status: 201 });
 
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Registration error:", error);
+    return NextResponse.json(
+      { error: 'Something went wrong during registration.' },
+      { status: 500 }
+    );
   }
 }

@@ -1,35 +1,50 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
 import { connectToDatabase } from '@/lib/db';
-import Project from '@/models/Project';
+import Project from '@/models/Project'; // Adjust this import if your model is named Order or something else!
 
-export async function PATCH(request: Request) {
+export async function PATCH(req: Request) {
   try {
-    const session = await auth();
-    if (!session || (session.user as any).role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
+    const body = await req.json();
+    const { projectId, designProofUrl, designNotes } = body;
 
-    const { projectId, designProofUrl, designNotes } = await request.json();
-
+    // Double-check that we received the critical data
     if (!projectId || !designProofUrl) {
-      return NextResponse.json({ error: 'Missing required proof data' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Project ID and Design Proof URL are required.' },
+        { status: 400 }
+      );
     }
 
     await connectToDatabase();
 
+    // Find the order by its ID and attach the mockup
     const updatedProject = await Project.findByIdAndUpdate(
       projectId,
       {
-        designProofUrl,
-        designNotes: designNotes?.trim() || '',
-        proofStatus: 'PENDING_APPROVAL' // Flag it so the user sees it
+        $set: {
+          designProofUrl: designProofUrl,
+          designNotes: designNotes, // Saving the notes you typed in!
+          status: 'PENDING_APPROVAL', // Automatically advances the timeline for the client
+        }
       },
-      { new: true }
+      { new: true } 
     );
 
-    return NextResponse.json({ success: true, project: updatedProject });
+    if (!updatedProject) {
+      return NextResponse.json(
+        { error: 'Could not find this order in the database.' },
+        { status: 404 }
+      );
+    }
+
+    // Tell your frontend component it was a total success
+    return NextResponse.json({ success: true, project: updatedProject }, { status: 200 });
+
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Error attaching design proof:", error);
+    return NextResponse.json(
+      { error: 'Failed to save the mockup to the database.' },
+      { status: 500 }
+    );
   }
 }

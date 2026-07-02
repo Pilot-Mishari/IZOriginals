@@ -37,7 +37,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
           </span>
           <h1 style={{ fontSize: '2.5rem', margin: '10px 0' }}>{product.title}</h1>
           <p style={{ fontSize: '1.3rem', fontWeight: 'bold', margin: '0 0 20px 0' }}>
-            Starting at SAR {(product.basePrice as number).toFixed(2)}
+            Starting at SAR {(product.price as number).toFixed(2)}
           </p>
           <p style={{ color: '#444', lineHeight: '1.6', fontSize: '1.1rem' }}>
             {product.description}
@@ -56,7 +56,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
               <ProjectForm 
                 productId={product._id.toString()} 
                 productTitle={product.title} 
-                basePrice={product.basePrice as number} 
+                price={product.price as number} 
               />
             </div>
           ) : (

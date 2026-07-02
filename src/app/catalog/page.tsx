@@ -21,7 +21,7 @@ export default async function CatalogPage() {
       {products.length === 0 ? (
         <div className="bg-neutral-50 border border-dashed border-neutral-300 rounded-xl p-16 text-center">
           <h3 className="text-2xl font-bold mb-2">Your catalog is empty</h3>
-          <p className="text-neutral-500">Use the Admin dashboard to add products and they will appear here.</p>
+          <p className="text-neutral-500">Nothing Has Been Added Yet. :(</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
@@ -29,9 +29,9 @@ export default async function CatalogPage() {
             <div key={product._id.toString()} className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col group">
               
               <div className="relative w-full h-80 bg-neutral-100 overflow-hidden">
-                {product.images && product.images.length > 0 ? (
+                {product.imageUrl && product.imageUrl.length > 0 ? (
                   <Image 
-                    src={product.images[0]} 
+                    src={product.imageUrl} 
                     alt={product.title} 
                     fill 
                     className="object-cover group-hover:scale-105 transition-transform duration-500" 
@@ -54,7 +54,7 @@ export default async function CatalogPage() {
                 
                 <div className="flex justify-between items-center border-t border-neutral-100 pt-6">
                   <span className="text-xl font-bold">
-                    SAR {product.basePrice.toFixed(2)}
+                    SAR {product.price.toFixed(2)}
                   </span>
                   <Link href={`/catalog/${product._id.toString()}`} className="px-6 py-2 bg-black text-white text-sm font-bold rounded-md hover:bg-neutral-800 transition-colors">
                     Customize

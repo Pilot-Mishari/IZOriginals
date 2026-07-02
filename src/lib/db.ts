@@ -3,7 +3,7 @@ import { setServers } from 'node:dns/promises';
 
 setServers(['1.1.1.1', '8.8.8.8']);
 
-const MONGODB_URI = process.env.MONGODB_URI!;
+const MONGODB_URI = process.env.MONGODB_URI as string;
 
 if (!MONGODB_URI) {
   throw new Error(
